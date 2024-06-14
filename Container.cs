@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Container_algoritme.models
+namespace Container_algoritme
 {
-    internal class Container
+    public class Container
     {
         public int id { get; set; }
         public bool isValuable { get; set; }
