@@ -7,6 +7,7 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Container_algoritme
@@ -30,217 +31,58 @@ namespace Container_algoritme
                 rows.Add(new Row(width));
             }
         }
-        /*
-        public string WebStringMaker()
+
+        public string GetWebString()
         {
-            string webString = "https://i872272.luna.fhict.nl/ContainerVisualizer/index.html?";
-            webString += "length=" + length + "&";
-            webString += "width=" + width + "&";
-            webString += "stacks=";
-            //type containers
-            for (int x = 0; x < length; x++)
-            {
-                for (int y = 0; y < width; y++)
-                {
-                    if (rows[x].stacks[y].containers.Any())
-                    {
-                        foreach (var container in rows[x].stacks[y].containers)
-                        {
-                            if (container.isCooled & container.isValuable)
-                            {
-                                webString += "4";
-                            }
-                            else
-                            {
-                                if (container.isCooled)
-                                {
-                                    webString += "3";
-                                }
-                                else
-                                {
-                                    if (container.isValuable)
-                                    {
-                                        webString += "2";
-                                    }
-                                    else
-                                    {
-                                        webString += "1";
-                                    }
-                                }
-                            }
-                            webString += "-";
-                        }
-                        webString = webString.Remove(webString.Length - 1);
-                    }
-                    webString += ",";
-                }
-                webString = webString.Remove(webString.Length - 1);
-                webString += "/";
-            }
-            webString = webString.Remove(webString.Length - 1);
-            //gewichten containers
-            webString += "&weights=";
-            for (int x = 0; x < length; x++)
-            {
-                for (int y = 0; y < width; y++)
-                {
-
-                    if (rows[x].stacks[y].containers.Any())
-                    {
-                        foreach (var container in rows[x].stacks[y].containers)
-                        {
-                            webString += container.weight.ToString();
-                            webString += "-";
-                        }
-                        webString = webString.Remove(webString.Length - 1);
-                    }
-                    webString += ",";
-                }
-                webString = webString.Remove(webString.Length - 1);
-                webString += "/";
-            }
-            webString = webString.Remove(webString.Length - 1);
-            return webString;
-        }
-        */
-        public string WebStringMaker()
-        {
-            StringBuilder webString = new StringBuilder("https://i872272.luna.fhict.nl/ContainerVisualizer/index.html?");
-
-            webString.Append("length=").Append(length).Append("&");
-            webString.Append("width=").Append(width).Append("&");
-
-            webString.Append("stacks=");
-
-            for (int x = 0; x < rows.Count; x++)
-            {
-                for (int y = 0; y < rows[x].stacks.Count; y++)
-                {
-                    if (rows[x].stacks[y].Containers.Any())
-                    {
-                        foreach (var container in rows[x].stacks[y].Containers)
-                        {
-                            if (container.isCooled && container.isValuable)
-                            {
-                                webString.Append("4");
-                            }
-                            else if (container.isCooled)
-                            {
-                                webString.Append("3");
-                            }
-                            else if (container.isValuable)
-                            {
-                                webString.Append("2");
-                            }
-                            else
-                            {
-                                webString.Append("1");
-                            }
-                            webString.Append("-");
-                        }
-                        webString.Length--;
-                    }
-                    webString.Append(",");
-                }
-                webString.Length--;
-                webString.Append("/");
-            }
-            webString.Length--;
-
-            webString.Append("&weights=");
-            for (int x = 0; x < rows.Count; x++)
-            {
-                for (int y = 0; y < rows[x].stacks.Count; y++)
-                {
-                    if (rows[x].stacks[y].Containers.Any())
-                    {
-                        foreach (var container in rows[x].stacks[y].Containers)
-                        {
-                            webString.Append(container.weight).Append("-");
-                        }
-                        webString.Length--;
-                    }
-                    webString.Append(",");
-                }
-                webString.Length--;
-                webString.Append("/");
-            }
-            webString.Length--;
-
-            return webString.ToString();
+            WebStringFactory webStringFactory = new WebStringFactory();
+            return webStringFactory.CreateString(length, width, rows);
         }
 
-        /*
-        public bool IsMarginCorrect()
+        public void AddContainers(List<Container> containers)
         {
-            //check of de marge van 20% niet overschreden wordt
-            float leftWeight = 0;
-            float rightWeight = 0;
-            int middleRowWeight = 0;
-            float halfOfMiddleRowWeight = 0;
-
-            int leftSide;
-            int rightSide;
-
-            if (!(width % 2 == 0))
+            foreach (var container in containers.Where(x => x.isCooled))
             {
-
-                int middleRow = (int)Math.Floor(width / 2.0 + 0.5);
-                leftSide = middleRow - 1;
-                rightSide = middleRow + 1;
-
-                for (int x = 0; x < width; x++)
-                {
-                    foreach (var container in containerLayout[x, middleRow])
-                    {
-                        middleRowWeight += container.weight;
-                    }
-                }
-
-                halfOfMiddleRowWeight = middleRowWeight / 2;
-            }
-            else
-            {
-                leftSide = width / 2;
-                rightSide = width - 1;
+                SortCooledContainer(container);
             }
 
-            for (int x = 0; x <= leftSide; x++)
+            foreach (var container in containers.Where(x => !x.isValuable && !x.isCooled))
             {
-                for (int y = 0; y <= length - 1; y++)
-                {
-                    foreach (var container in containerLayout[x, y])
-                    {
-                        leftWeight += container.weight;
-                    }
-                }
-
+                SortNormalContainer(container);
             }
 
-            for (int x = rightSide; x <= width - 1; x++)
+            foreach (var container in containers.Where(x => x.isValuable))
             {
-                for (int y = 0; y <= length - 1; y++)
-                {
-                    foreach (var container in containerLayout[x, y])
-                    {
-                        rightWeight += container.weight;
-                    }
-                }
-            }
-
-            leftWeight += halfOfMiddleRowWeight;
-            rightWeight += halfOfMiddleRowWeight;
-
-            if (Math.Abs(leftWeight - rightWeight) > (leftWeight + rightWeight) * 0.2)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
+                SortValuableContainer(container);
             }
         }
-        */
+
+        private void SortCooledContainer(Container container)
+        {
+            int frontRow = 0;
+            rows[frontRow].TryAddContainer(container);
+        }
+
+        private void SortNormalContainer(Container container)
+        {
+            foreach (var row in rows)
+            {
+                if (row.TryAddContainer(container))
+                {
+                    break;
+                }
+            }
+        }
+
+        private void SortValuableContainer(Container container)
+        {
+            foreach (var row in rows)
+            {
+                if (TryAddValuableContainer(row, container))
+                {
+                    break;
+                }
+            }
+        }
 
         private bool TryAddValuableContainer(Row row, Container container)
         {
@@ -249,36 +91,36 @@ namespace Container_algoritme
 
             foreach (var stack in rows[rowIndex].stacks)
             {
-                int stackHeight = rows[rowIndex].GetStackHeigth(stackIndex);
-
-                Row rowBeforeCurrentRow = GetPreviousRow(rowIndex);
-                if (rowBeforeCurrentRow == null)
+                if (CheckOtherStackAndTryAdd(rowIndex, stackIndex, container))
                 {
-                    rows[rowIndex].AddContainer(container, stackIndex);
-                    return true;
-                }
-                
-                int stackHeightBefore = rowBeforeCurrentRow.GetStackHeigth(stackIndex);
-                if (stackHeight >= stackHeightBefore)
-                {
-                    rows[rowIndex].AddContainer(container, stackIndex);
-                    return true;
-                }
-
-                Row rowAfterCurrentRow = GetNextRow(rowIndex);
-                if (rowAfterCurrentRow == null)
-                {
-                    rows[rowIndex].AddContainer(container, stackIndex);
-                    return true;
-                }
-
-                int stackHeightAfter = rowAfterCurrentRow.GetStackHeigth(stackIndex);
-                if (stackHeight >= stackHeightAfter)
-                {
-                    rows[rowIndex].AddContainer(container, stackIndex);
                     return true;
                 }
                 stackIndex++;
+            }
+            return false;
+        }
+
+
+        private bool TryAddValuableToStack(int rowIndex, int stackIndex, Container container)
+        {
+            if (rows[rowIndex].TryAddContainer(container, stackIndex))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool CheckOtherStackAndTryAdd(int rowIndex, int stackIndex, Container container)
+        {
+            Row rowBeforeCurrentRow = GetPreviousRow(rowIndex);
+            Row rowAfterCurrentRow = GetNextRow(rowIndex);
+
+            if (!WillBlockValuableContainer(rowBeforeCurrentRow, rowAfterCurrentRow, stackIndex))
+            {
+                if (CompareStacks(rowIndex, stackIndex, container, rowBeforeCurrentRow, rowAfterCurrentRow))
+                {
+                    TryAddValuableToStack(rowIndex, stackIndex, container);
+                }
             }
             return false;
         }
@@ -307,44 +149,53 @@ namespace Container_algoritme
             }
         }
 
-        public void AddContainers(List<Container> containers)
+        private bool WillBlockValuableContainer(Row rowBefore, Row rowAfter, int stackIndex)
         {
-            //eerst coole containers
-
-            int frontRow = 0;
-
-            foreach (var container in containers.Where(x => x.isCooled)) 
+            bool willBlock = false;
+            if (rowBefore != null)
             {
-                rows[frontRow].TryAddContainer(container);
-            }
-
-            //normale
-            /*
-            foreach(var container in containers.Where(x => !x.isValuable))
-            {
-                foreach (var row in rows)
+                if (rowBefore.stacks[stackIndex].Containers.Any())
                 {
-                    if(row.TryAddContainer(container))
+                    if (rowBefore.stacks[stackIndex].Containers.Last().isValuable)
                     {
-                        break;
+                        willBlock = true;
                     }
                 }
             }
 
-            //waardevolle
-            /*
-            foreach (var container in containers.Where(x => x.isValuable))
+            if (rowAfter != null)
             {
-               
-                foreach (var row in rows)
+                if (rowAfter.stacks[stackIndex].Containers.Any())
                 {
-                    if(TryAddValuableContainer(row, container))
+                    if (rowAfter.stacks[stackIndex].Containers.Last().isValuable)
                     {
-                        break;
+                        willBlock = true;
                     }
                 }
-                
-            }*/
+            }
+            return willBlock;
+        }
+
+
+        private bool CompareStacks(int rowIndex, int stackIndex, Container container, Row rowBeforeCurrentRow, Row rowAfterCurrentRow)
+        {
+            int stackHeight = rows[rowIndex].GetStackHeight(stackIndex);
+            int stackHeightBefore = rowBeforeCurrentRow?.GetStackHeight(stackIndex) ?? -1;
+            int stackHeightAfter = rowAfterCurrentRow?.GetStackHeight(stackIndex) ?? -1;
+
+            // Check if the current stack is suitable for a valuable container without blocking access to other valuable containers
+            bool canPlaceWithoutBlocking = !WillBlockValuableContainer(rowBeforeCurrentRow, rowAfterCurrentRow, stackIndex);
+            if (canPlaceWithoutBlocking)
+            {
+                // If there's no row before or after, or if the current stack height is greater or equal to adjacent stacks, try to add
+                if ((rowBeforeCurrentRow == null || stackHeight >= stackHeightBefore) &&
+                    (rowAfterCurrentRow == null || stackHeight >= stackHeightAfter))
+                {
+                    return TryAddValuableToStack(rowIndex, stackIndex, container);
+                }
+            }
+
+            return false;
         }
     }
 }

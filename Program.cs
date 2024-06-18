@@ -54,6 +54,6 @@ ship = new Ship(shipX, shipY);
 
 ship.AddContainers(containerList);
 
-string webString = ship.WebStringMaker();
+string webString = ship.GetWebString();
 System.Diagnostics.Process.Start("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", webString);
 Console.WriteLine(webString);

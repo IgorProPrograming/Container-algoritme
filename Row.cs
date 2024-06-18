@@ -34,12 +34,17 @@ namespace Container_algoritme
             return false;
         }
 
-        public void AddContainer(Container container, int stackIndex)
+        public bool TryAddContainer(Container container, int stackIndex)
         {
-            stacks[stackIndex].AddContainer(container);
+            if (stacks[stackIndex].CanAddContainer(container))
+            {
+                stacks[stackIndex].AddContainer(container);
+                return true;
+            }
+            return false;
         }
 
-        public int GetStackHeigth(int stackIndex)
+        public int GetStackHeight(int stackIndex)
         {
             return stacks[stackIndex].GetStackHeight();
         }

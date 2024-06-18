@@ -23,13 +23,19 @@ namespace Container_algoritme
             {
                 return true;
             }
-            
+            int topContainerIndex = Containers.Count - 1;
+            if (Containers[topContainerIndex].isValuable == true)
+            {
+                return false;
+            }
             // check of max gewicht niet wordt overschreden
             int stackWeight = 0;
             foreach (Container c in Containers)
             {
                 stackWeight += c.weight;
             }
+
+            
 
             if (stackWeight + container.weight <= 120)
             {
@@ -38,11 +44,7 @@ namespace Container_algoritme
 
             //check of bovenste container niet valuable is
 
-            int topContainerIndex = Containers.Count - 1;
-            if (!Containers[topContainerIndex].isValuable == true)
-            {
-                return true;
-            }
+            
             
             return false;
         }
