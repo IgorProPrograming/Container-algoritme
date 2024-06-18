@@ -9,7 +9,8 @@ namespace Container_algoritme
 {
     public class Row
     {
-        public List<Stack> stacks { get; private set; }
+        public List<Stack> stacks;
+       // public IReadOnlyList<Stack> stacks => Stacks;
 
         public Row(int width)
         {
@@ -20,35 +21,27 @@ namespace Container_algoritme
             }
         }
 
-        public bool CanAddContainer(Container container)
-        {
-            foreach (Stack stack in stacks)
-            {
-                if (stack.CanAddContainer(container))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-
-
-        public void AddContainer(Container container)
+        public bool TryAddContainer(Container container)
         {
             foreach (Stack stack in stacks)
             {
                 if (stack.CanAddContainer(container))
                 {
                     stack.AddContainer(container);
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
 
         public void AddContainer(Container container, int stackIndex)
         {
             stacks[stackIndex].AddContainer(container);
+        }
+
+        public int GetStackHeigth(int stackIndex)
+        {
+            return stacks[stackIndex].GetStackHeight();
         }
     }
 }

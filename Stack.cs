@@ -8,24 +8,25 @@ namespace Container_algoritme
 {
     public class Stack
     {
-        public List<Container> containers { get; private set; }
+        public List<Container> Containers;
+        //public IReadOnlyList<Container> containers => Containers;
 
         public Stack()
         {
-            containers = new List<Container>();
+            Containers = new List<Container>();
         }
 
         public bool CanAddContainer(Container container)
         {
             // if stack empty
-            if (containers.Count == 0)
+            if (Containers.Count == 0)
             {
                 return true;
             }
             
             // check of max gewicht niet wordt overschreden
             int stackWeight = 0;
-            foreach (Container c in containers)
+            foreach (Container c in Containers)
             {
                 stackWeight += c.weight;
             }
@@ -37,8 +38,8 @@ namespace Container_algoritme
 
             //check of bovenste container niet valuable is
 
-            int topContainerIndex = containers.Count - 1;
-            if (!containers[topContainerIndex].isValuable == true)
+            int topContainerIndex = Containers.Count - 1;
+            if (!Containers[topContainerIndex].isValuable == true)
             {
                 return true;
             }
@@ -46,11 +47,14 @@ namespace Container_algoritme
             return false;
         }
 
-
         public void AddContainer(Container container)
         {
-            containers.Add(container);
+            Containers.Add(container);
         }
 
+        public int GetStackHeight()
+        {
+            return Containers.Count;
+        }
     }
 }

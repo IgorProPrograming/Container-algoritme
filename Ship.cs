@@ -30,7 +30,79 @@ namespace Container_algoritme
                 rows.Add(new Row(width));
             }
         }
+        /*
+        public string WebStringMaker()
+        {
+            string webString = "https://i872272.luna.fhict.nl/ContainerVisualizer/index.html?";
+            webString += "length=" + length + "&";
+            webString += "width=" + width + "&";
+            webString += "stacks=";
+            //type containers
+            for (int x = 0; x < length; x++)
+            {
+                for (int y = 0; y < width; y++)
+                {
+                    if (rows[x].stacks[y].containers.Any())
+                    {
+                        foreach (var container in rows[x].stacks[y].containers)
+                        {
+                            if (container.isCooled & container.isValuable)
+                            {
+                                webString += "4";
+                            }
+                            else
+                            {
+                                if (container.isCooled)
+                                {
+                                    webString += "3";
+                                }
+                                else
+                                {
+                                    if (container.isValuable)
+                                    {
+                                        webString += "2";
+                                    }
+                                    else
+                                    {
+                                        webString += "1";
+                                    }
+                                }
+                            }
+                            webString += "-";
+                        }
+                        webString = webString.Remove(webString.Length - 1);
+                    }
+                    webString += ",";
+                }
+                webString = webString.Remove(webString.Length - 1);
+                webString += "/";
+            }
+            webString = webString.Remove(webString.Length - 1);
+            //gewichten containers
+            webString += "&weights=";
+            for (int x = 0; x < length; x++)
+            {
+                for (int y = 0; y < width; y++)
+                {
 
+                    if (rows[x].stacks[y].containers.Any())
+                    {
+                        foreach (var container in rows[x].stacks[y].containers)
+                        {
+                            webString += container.weight.ToString();
+                            webString += "-";
+                        }
+                        webString = webString.Remove(webString.Length - 1);
+                    }
+                    webString += ",";
+                }
+                webString = webString.Remove(webString.Length - 1);
+                webString += "/";
+            }
+            webString = webString.Remove(webString.Length - 1);
+            return webString;
+        }
+        */
         public string WebStringMaker()
         {
             StringBuilder webString = new StringBuilder("https://i872272.luna.fhict.nl/ContainerVisualizer/index.html?");
@@ -44,9 +116,9 @@ namespace Container_algoritme
             {
                 for (int y = 0; y < rows[x].stacks.Count; y++)
                 {
-                    if (rows[x].stacks[y].containers.Any())
+                    if (rows[x].stacks[y].Containers.Any())
                     {
-                        foreach (var container in rows[x].stacks[y].containers)
+                        foreach (var container in rows[x].stacks[y].Containers)
                         {
                             if (container.isCooled && container.isValuable)
                             {
@@ -80,9 +152,9 @@ namespace Container_algoritme
             {
                 for (int y = 0; y < rows[x].stacks.Count; y++)
                 {
-                    if (rows[x].stacks[y].containers.Any())
+                    if (rows[x].stacks[y].Containers.Any())
                     {
-                        foreach (var container in rows[x].stacks[y].containers)
+                        foreach (var container in rows[x].stacks[y].Containers)
                         {
                             webString.Append(container.weight).Append("-");
                         }
@@ -170,36 +242,71 @@ namespace Container_algoritme
         }
         */
 
-        private bool ContainerIsAccesible(int rowIndex, int stackIndex, Stack stack)
+        private bool TryAddValuableContainer(Row row, Container container)
         {
-            int stackHeight = stack.containers.Count;
+            int rowIndex = rows.IndexOf(row);
+            int stackIndex = 0;
 
-            int otherStackHeight = 0;
-
-            for (int otherRowIndex = -1; otherRowIndex <= 1; otherRowIndex += 2)
+            foreach (var stack in rows[rowIndex].stacks)
             {
-                if (rows[otherRowIndex].stacks.Any())
+                int stackHeight = rows[rowIndex].GetStackHeigth(stackIndex);
+
+                Row rowBeforeCurrentRow = GetPreviousRow(rowIndex);
+                if (rowBeforeCurrentRow == null)
                 {
-                    if (rows[otherRowIndex].stacks[stackIndex].containers.Any())
-                    {
-                        otherStackHeight = rows[otherRowIndex].stacks[stackIndex].containers.Count;
-                        if (stackHeight >= otherStackHeight)
-                        {
-                            return true;
-                        }
-                    }else
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
+                    rows[rowIndex].AddContainer(container, stackIndex);
                     return true;
                 }
+                
+                int stackHeightBefore = rowBeforeCurrentRow.GetStackHeigth(stackIndex);
+                if (stackHeight >= stackHeightBefore)
+                {
+                    rows[rowIndex].AddContainer(container, stackIndex);
+                    return true;
+                }
+
+                Row rowAfterCurrentRow = GetNextRow(rowIndex);
+                if (rowAfterCurrentRow == null)
+                {
+                    rows[rowIndex].AddContainer(container, stackIndex);
+                    return true;
+                }
+
+                int stackHeightAfter = rowAfterCurrentRow.GetStackHeigth(stackIndex);
+                if (stackHeight >= stackHeightAfter)
+                {
+                    rows[rowIndex].AddContainer(container, stackIndex);
+                    return true;
+                }
+                stackIndex++;
             }
             return false;
         }
-        
+
+        private Row GetPreviousRow(int currentRowIndex)
+        {
+            if (currentRowIndex > 0)
+            {
+                return rows[currentRowIndex - 1];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private Row GetNextRow(int currentRowIndex)
+        {
+            if (currentRowIndex < rows.Count - 1)
+            {
+                return rows[currentRowIndex + 1];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public void AddContainers(List<Container> containers)
         {
             //eerst coole containers
@@ -208,45 +315,36 @@ namespace Container_algoritme
 
             foreach (var container in containers.Where(x => x.isCooled)) 
             {
-                rows[frontRow].AddContainer(container);
+                rows[frontRow].TryAddContainer(container);
             }
 
             //normale
-
+            /*
             foreach(var container in containers.Where(x => !x.isValuable))
             {
                 foreach (var row in rows)
                 {
-                    if (row.CanAddContainer(container))
+                    if(row.TryAddContainer(container))
                     {
-                        row.AddContainer(container);
                         break;
                     }
                 }
             }
 
             //waardevolle
-
+            /*
             foreach (var container in containers.Where(x => x.isValuable))
             {
-                int rowIndex = 0;
+               
                 foreach (var row in rows)
                 {
-                    if (row.CanAddContainer(container))
+                    if(TryAddValuableContainer(row, container))
                     {
-                        int stackIndex = 0;
-                        foreach (var stack in rows[rowIndex].stacks)
-                        {
-                            if (ContainerIsAccesible(rowIndex, stackIndex, stack))
-                            {
-                                row.AddContainer(container, stackIndex);
-                            }
-                            stackIndex++;
-                        }
+                        break;
                     }
-                    rowIndex++;
                 }
-            }
+                
+            }*/
         }
     }
 }
