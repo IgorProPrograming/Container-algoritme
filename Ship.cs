@@ -16,8 +16,8 @@ namespace Container_algoritme
     {
         public List<Row> rows { get; private set; }
 
-        int length;
-        int width;
+        private int length;
+        private int width;
 
         public Ship(int _width, int _length)
         {
@@ -100,16 +100,6 @@ namespace Container_algoritme
             return false;
         }
 
-
-        private bool TryAddValuableToStack(int rowIndex, int stackIndex, Container container)
-        {
-            if (rows[rowIndex].TryAddContainer(container, stackIndex))
-            {
-                return true;
-            }
-            return false;
-        }
-
         private bool CheckOtherStackAndTryAdd(int rowIndex, int stackIndex, Container container)
         {
             Row rowBeforeCurrentRow = GetPreviousRow(rowIndex);
@@ -125,28 +115,23 @@ namespace Container_algoritme
             return false;
         }
 
-        private Row GetPreviousRow(int currentRowIndex)
+        private bool CompareStacks(int rowIndex, int stackIndex, Container container, Row rowBeforeCurrentRow, Row rowAfterCurrentRow)
         {
-            if (currentRowIndex > 0)
-            {
-                return rows[currentRowIndex - 1];
-            }
-            else
-            {
-                return null;
-            }
-        }
+            int stackHeight = rows[rowIndex].GetStackHeight(stackIndex);
+            int stackHeightBefore = rowBeforeCurrentRow?.GetStackHeight(stackIndex) ?? -1;
+            int stackHeightAfter = rowAfterCurrentRow?.GetStackHeight(stackIndex) ?? -1;
 
-        private Row GetNextRow(int currentRowIndex)
-        {
-            if (currentRowIndex < rows.Count - 1)
+            bool canPlaceWithoutBlocking = !WillBlockValuableContainer(rowBeforeCurrentRow, rowAfterCurrentRow, stackIndex);
+            if (canPlaceWithoutBlocking)
             {
-                return rows[currentRowIndex + 1];
+                if ((rowBeforeCurrentRow == null || stackHeight >= stackHeightBefore) &&
+                    (rowAfterCurrentRow == null || stackHeight >= stackHeightAfter))
+                {
+                    return TryAddValuableToStack(rowIndex, stackIndex, container);
+                }
             }
-            else
-            {
-                return null;
-            }
+
+            return false;
         }
 
         private bool WillBlockValuableContainer(Row rowBefore, Row rowAfter, int stackIndex)
@@ -176,26 +161,72 @@ namespace Container_algoritme
             return willBlock;
         }
 
-
-        private bool CompareStacks(int rowIndex, int stackIndex, Container container, Row rowBeforeCurrentRow, Row rowAfterCurrentRow)
+        private bool TryAddValuableToStack(int rowIndex, int stackIndex, Container container)
         {
-            int stackHeight = rows[rowIndex].GetStackHeight(stackIndex);
-            int stackHeightBefore = rowBeforeCurrentRow?.GetStackHeight(stackIndex) ?? -1;
-            int stackHeightAfter = rowAfterCurrentRow?.GetStackHeight(stackIndex) ?? -1;
-
-            // Check if the current stack is suitable for a valuable container without blocking access to other valuable containers
-            bool canPlaceWithoutBlocking = !WillBlockValuableContainer(rowBeforeCurrentRow, rowAfterCurrentRow, stackIndex);
-            if (canPlaceWithoutBlocking)
+            if (rows[rowIndex].TryAddContainer(container, stackIndex))
             {
-                // If there's no row before or after, or if the current stack height is greater or equal to adjacent stacks, try to add
-                if ((rowBeforeCurrentRow == null || stackHeight >= stackHeightBefore) &&
-                    (rowAfterCurrentRow == null || stackHeight >= stackHeightAfter))
+                return true;
+            }
+            return false;
+        }
+
+        private Row GetPreviousRow(int currentRowIndex)
+        {
+            if (currentRowIndex > 0)
+            {
+                return rows[currentRowIndex - 1];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private Row GetNextRow(int currentRowIndex)
+        {
+            if (currentRowIndex < rows.Count - 1)
+            {
+                return rows[currentRowIndex + 1];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+
+        public double IsShipBalanced()
+        {
+            int leftSideWeight = 0;
+            int rightSideWeight = 0;
+            int middle = width / 2; // Determine the middle of the ship to separate left and right sides
+
+            foreach (var row in rows)
+            {
+                for (int stackIndex = 0; stackIndex < row.stacks.Count; stackIndex++)
                 {
-                    return TryAddValuableToStack(rowIndex, stackIndex, container);
+                    int stackWeight = row.stacks[stackIndex].Containers.Sum(container => container.weight);
+                    if (stackIndex < middle)
+                    {
+                        leftSideWeight += stackWeight;
+                    }
+                    else if (width % 2 == 0 || stackIndex > middle) // For even widths or indexes beyond the middle for odd widths
+                    {
+                        rightSideWeight += stackWeight;
+                    }
+                    // If the width is odd and the stackIndex is exactly at the middle, distribute the weight evenly
+                    else
+                    {
+                        leftSideWeight += stackWeight / 2;
+                        rightSideWeight += stackWeight / 2;
+                    }
                 }
             }
 
-            return false;
+            double maxAllowedDifference = 0.2; // 20 percent
+            double difference = Math.Abs(leftSideWeight - rightSideWeight) / ((double)(leftSideWeight + rightSideWeight) / 2) * 100;
+
+            return difference;
         }
     }
 }

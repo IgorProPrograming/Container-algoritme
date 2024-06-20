@@ -57,3 +57,5 @@ ship.AddContainers(containerList);
 string webString = ship.GetWebString();
 System.Diagnostics.Process.Start("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", webString);
 Console.WriteLine(webString);
+
+Console.WriteLine(ship.IsShipBalanced());

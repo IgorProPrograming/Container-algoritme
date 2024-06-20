@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,35 +19,46 @@ namespace Container_algoritme
 
         public bool CanAddContainer(Container container)
         {
-            // if stack empty
             if (Containers.Count == 0)
             {
                 return true;
             }
-            int topContainerIndex = Containers.Count - 1;
-            if (Containers[topContainerIndex].isValuable == true)
+           
+            if (TopContainerIsValuable(container))
             {
                 return false;
             }
-            // check of max gewicht niet wordt overschreden
+
+            return WeightCheckResult(container);
+        }
+
+        private bool TopContainerIsValuable(Container container)
+        {
+            int topContainerIndex = Containers.Count - 1;
+            if (Containers[topContainerIndex].isValuable)
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+        }
+
+        private bool WeightCheckResult(Container container)
+        {
             int stackWeight = 0;
             foreach (Container c in Containers)
             {
                 stackWeight += c.weight;
             }
 
-            
-
             if (stackWeight + container.weight <= 120)
             {
                 return true;
+            } else
+            {
+                return false;
             }
-
-            //check of bovenste container niet valuable is
-
-            
-            
-            return false;
         }
 
         public void AddContainer(Container container)
